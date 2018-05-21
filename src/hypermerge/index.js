@@ -143,7 +143,24 @@ class Hypermerge extends EventEmitter {
     if (this.docs[docId]) {
       return
     }
-    this._trackedFeed(docId)
+
+    const promises = this.docIndex[docId].map(actorId => {
+      return this._loadBlocksWithoutDependencies(docId, actorId, this._length(actorId))
+    })
+
+    Promise.all(promises).then(() => {
+      this.readyIndex[docId] = true
+      /**
+       * Emitted when a document has been fully loaded.
+       *
+       * @event document:ready
+       *
+       * @param {string} docId - the hex id representing this document
+       * @param {Document} document - Automerge document
+       */
+      const doc = this.find(docId)
+      this.emit('document:ready', docId, doc)
+    })
   }
 
   /**
@@ -578,6 +595,13 @@ class Hypermerge extends EventEmitter {
       .then(() => this._loadMissingDependencyBlocks(docId))
   }
 
+  _loadBlocksWithoutDependencies(docId, actorId, last) {
+    log('_loadBlocksWithoutDependencies', docId, actorId, last)
+
+    return this._getBlockRange(actorId, START_BLOCK, last)
+      .then(blocks => this._applyBlocks(docId, blocks))
+  }
+
   // Loads and applies all blocks depended on by changes currently applied to
   // the doc for the given `docId`, recursively.
   //
@@ -610,7 +634,7 @@ class Hypermerge extends EventEmitter {
   _getBlock(actorId, index) {
     log('_getBlock.start', actorId, index)
     return new Promise((resolve, reject) => {
-      this._trackedFeed(actorId).get(index, (err, data) => {
+      this._feed(actorId).get(index, (err, data) => {
         if (err) {
           reject(err)
         } else {
