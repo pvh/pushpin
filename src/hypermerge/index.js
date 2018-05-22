@@ -144,11 +144,14 @@ class Hypermerge extends EventEmitter {
       return
     }
 
-    const promises = this.docIndex[docId].map(actorId => {
+    const actorIds = this.docIndex[docId]
+    const loadPromises = actorIds.map(actorId => {
       return this._loadBlocksWithoutDependencies(docId, actorId, this._length(actorId))
     })
-
-    Promise.all(promises).then(() => {
+    Promise.all(loadPromises).then(() => {
+      actorIds.forEach(actorId => {
+        this._trackFeed(actorId, this._feed(actorId))
+      })
       this.readyIndex[docId] = true
       /**
        * Emitted when a document has been fully loaded.
@@ -160,6 +163,7 @@ class Hypermerge extends EventEmitter {
        */
       const doc = this.find(docId)
       this.emit('document:ready', docId, doc)
+      this._loadMissingDependencyBlocks(docId)
     })
   }
 
@@ -293,15 +297,17 @@ class Hypermerge extends EventEmitter {
    * peers currently listening on the feed for `actorId`.
    */
   message(actorId, msg) {
-    this._trackedFeed(actorId).peers.forEach(peer => {
+    // TODO: verify we're only messaging on actorIds that are already tracked
+    this._feed(actorId).peers.forEach(peer => {
       this._messagePeer(peer, msg)
     })
   }
 
   _create(metadata, parentMetadata = {}) {
-    const feed = this._trackedFeed()
+    const feed = this._feed()
     const actorId = feed.key.toString('hex')
     log('_create', actorId)
+    this._trackFeed(actorId, feed)
 
     // Merge together the various sources of metadata, from lowest-priority to
     // highest priority.
@@ -363,25 +369,6 @@ class Hypermerge extends EventEmitter {
     return this.core.createFeed(key)
   }
 
-  // Finds or creates, and returns, a tracked feed. This means that updates to
-  // the feed will cause updates to in-memory docs, emit events, etc.
-  //
-  // There are three cases:
-  // * `actorId` is not given, and we create a new feed with a random actorId.
-  // * `actorId` is given but we don't have a feed yet because we just found
-  //   out about it from another user - create the feed with the given actorId.
-  // * `actorId` is given and we know of the feed already - return from cache.
-  _trackedFeed(actorId = null) {
-    this._ensureReady()
-
-    if (actorId && this.feeds[actorId]) {
-      return this.feeds[actorId]
-    }
-
-    log('feed.init', actorId)
-    return this._trackFeed(actorId, this._feed(actorId))
-  }
-
   _replicate(opts) {
     return this.core.replicate(opts)
   }
@@ -410,7 +397,7 @@ class Hypermerge extends EventEmitter {
     log('_appendAll', actorId)
     const blocks = changes.map(change => JSON.stringify(change))
     return new Promise((resolve, reject) => {
-      this._trackedFeed(actorId).append(blocks, (err) => {
+      this._feed(actorId).append(blocks, (err) => {
         if (err) {
           reject(err)
         } else {
@@ -435,6 +422,15 @@ class Hypermerge extends EventEmitter {
     return feed
   }
 
+  // TODO: doc
+  _ensureTrackedFeed(actorId) {
+    if (this.feeds[actorId]) {
+      return
+    }
+    const feed = this._feed(actorId)
+    this._trackFeed(feed)
+  }
+
   // Returns a callback to run when the given `feed`, corresponding to the
   // given `actorId`, is ready.
   // Callback will load metadata for the feed, ensure we have an in-memory
@@ -443,36 +439,14 @@ class Hypermerge extends EventEmitter {
   // plus their dependencies. Finally, it will emit `document:ready` when
   // the doc is indeed ready.
   _onFeedReady(actorId, feed) {
+    // TODO: can we know more of this statically?
     return () => {
       log('_onFeedReady', actorId)
       this._loadMetadata(actorId)
         .then(() => {
           const docId = this._actorToId(actorId)
-
           this._createDocIfMissing(docId, actorId)
-
           feed.on('download', this._onDownload(docId, actorId))
-
-          const ourActorId = this.docs[docId]._actorId
-
-          return this._loadBlocksWithDependencies(docId, actorId, this._length(actorId))
-            .then(() => {
-              if (actorId !== ourActorId) {
-                return
-              }
-
-              this.readyIndex[docId] = true
-              /**
-               * Emitted when a document has been fully loaded.
-               *
-               * @event document:ready
-               *
-               * @param {string} docId - the hex id representing this document
-               * @param {Document} document - Automerge document
-               */
-              const doc = this.find(docId)
-              this.emit('document:ready', docId, doc)
-            })
         })
     }
   }
@@ -830,7 +804,7 @@ class Hypermerge extends EventEmitter {
     switch (msg.type) {
       case 'FEEDS_SHARED':
         msg.keys.forEach((actorId) => {
-          this._trackedFeed(actorId)
+          this._ensureTrackedFeed(actorId)
         })
         break
       default:
