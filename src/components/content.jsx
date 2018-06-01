@@ -59,8 +59,10 @@ export default class Content extends React.PureComponent {
     this.mounted = true
 
     this.handle.onChange(doc => {
-      if (!this.mounted) return
-      this.setState({doc})
+      if (!this.mounted) {
+        return
+      }
+      this.setState({ doc })
     })
   }
 
