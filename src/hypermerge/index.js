@@ -30,6 +30,38 @@ const METADATA = {
  */
 
 /**
+   * Experimental second open
+   */
+class DocHandle {
+  constructor(hm, docId, doc) {
+    this.hm = hm
+    this.id = docId
+    this.doc = doc
+    this._cb = () => {}
+  }
+
+  change(cb) {
+    this.doc = this.hm.change(this.doc, cb)
+  }
+
+  onChange(cb) {
+    this._cb = cb
+    if (this.doc) cb(this.doc)
+    return this
+  }
+
+  _update(doc) {
+    this.doc = doc
+    this._cb(doc)
+  }
+
+  _ready(doc) {
+    this.doc = doc
+    this._cb(doc)
+  }
+}
+
+/**
  * Creates a new Hypermerge instance that manages a set of documents.
  * All previously opened documents are automatically re-opened.
  * @param {object} options
@@ -49,6 +81,7 @@ class Hypermerge extends EventEmitter {
     this.isReady = false
     this.feeds = {}
     this.docs = {}
+    this.handles = {} // docId -> [DocHandle]
     this.readyIndex = {} // docId -> Boolean
     this.groupIndex = {} // groupId -> [actorId]
     this.docIndex = {} // docId -> [actorId]
@@ -164,6 +197,22 @@ class Hypermerge extends EventEmitter {
         }
       })
     })
+  }
+
+  openHandle(docId) {
+    this._ensureReady()
+
+    log('openHandle', docId)
+
+    this._trackedFeed(docId)
+
+    const doc = this.readyIndex[docId] ? this.docs[docId] : null
+
+    const handle = new DocHandle(this, docId, doc)
+
+    this._handles(docId).push(handle)
+
+    return handle
   }
 
   /**
@@ -300,6 +349,11 @@ class Hypermerge extends EventEmitter {
     this._trackedFeed(actorId).peers.forEach(peer => {
       this._messagePeer(peer, msg)
     })
+  }
+
+  _handles(docId) {
+    if (!this.handles[docId]) this.handles[docId] = []
+    return this.handles[docId]
   }
 
   _create(metadata, parentMetadata = {}) {
@@ -477,6 +531,9 @@ class Hypermerge extends EventEmitter {
                */
               const doc = this.find(docId)
               this.emit('document:ready', docId, doc)
+              this._handles(docId).forEach(handle => {
+                handle._ready(doc)
+              })
             })
         })
     }
@@ -714,6 +771,9 @@ class Hypermerge extends EventEmitter {
        * @param {Document} doc - Automerge document
        */
       this.emit('document:updated', docId, doc)
+      this._handles(docId).forEach(handle => {
+        handle._update(doc)
+      })
     }
   }
 
