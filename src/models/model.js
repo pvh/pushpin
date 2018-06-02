@@ -48,6 +48,8 @@ export function init(state) {
 
 function documentReady(state, { docId, doc }) {
   if (state.requestedWorkspace === docId) {
+    window.selfId = doc.selfId
+
     return { ...state, workspace: doc }
   }
 
@@ -56,6 +58,7 @@ function documentReady(state, { docId, doc }) {
 
 function documentUpdated(state, { docId, doc }) {
   if (docId === state.requestedWorkspace) {
+    window.selfId = doc.selfId
     return { ...state, workspace: doc }
   }
 

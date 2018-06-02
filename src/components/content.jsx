@@ -33,11 +33,11 @@ export default class Content extends React.PureComponent {
       .find(contentType => contentType.type === type)
     const documentInitializationFunction = contentType.component.initializeDocument
 
-    let handle = window.hm.createHandle()
+    this.handle = window.hm.createHandle()
 
-    documentInitializationFunction((cb) => { handle.change(cb) }, typeAttrs)
+    documentInitializationFunction((cb) => { this.handle.change(cb) }, typeAttrs)
 
-    return this.handle.docId
+    return this.handle.id
   }
 
   onChange(changeBlock) {

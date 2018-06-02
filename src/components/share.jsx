@@ -177,7 +177,7 @@ export default class Share extends React.PureComponent {
       const sender = window.hm.openHandle(offer.offererId).doc
       const board = window.hm.openHandle(offer.offeredId).doc
       if (sender && board) {
-        notifications.push({ type: 'Invitation', sender, board })
+        notifications.push({ type: 'Invitation', sender, board, boardId: offer.offeredId })
       }
     })
 
