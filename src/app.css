@@ -400,6 +400,7 @@ div.card span.cardResizeHandle {
 .card {
   box-sizing: border-box;
   display: flex;
+  flex-direction: column;
 }
 
 .card:focus, .card:active {
