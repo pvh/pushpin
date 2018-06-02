@@ -37,6 +37,7 @@ class DocHandle {
     this.hm = hm
     this.id = docId
     this.doc = doc
+    this.metadata = hm.metadata(this.id)
     this._cb = () => {}
   }
 
@@ -207,6 +208,20 @@ class Hypermerge extends EventEmitter {
     this._trackedFeed(docId)
 
     const doc = this.readyIndex[docId] ? this.docs[docId] : null
+
+    const handle = new DocHandle(this, docId, doc)
+
+    this._handles(docId).push(handle)
+
+    return handle
+  }
+
+  createHandle(metadata = {}) {
+    this._ensureReady()
+    log('createHandle')
+
+    const doc = this._create(metadata)
+    const docId = this.getId(doc)
 
     const handle = new DocHandle(this, docId, doc)
 

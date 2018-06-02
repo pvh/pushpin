@@ -28,31 +28,25 @@ export default class Content extends React.PureComponent {
   }
 
   static initializeContentDoc(type, typeAttrs = {}) {
-    const { hm } = window // still not a great idea
     const contentType = ContentTypes
       .list({ withUnlisted: true })
       .find(contentType => contentType.type === type)
     const documentInitializationFunction = contentType.component.initializeDocument
 
-    let doc = hm.create()
-    const docId = hm.getId(doc)
+    let handle = window.hm.createHandle()
 
-    const onChange = (cb) => {
-      doc = hm.change(doc, cb)
-    }
+    documentInitializationFunction((cb) => { handle.change(cb) }, typeAttrs)
 
-    documentInitializationFunction(onChange, typeAttrs)
-
-    return docId
+    return this.handle.docId
   }
 
   onChange(changeBlock) {
     // We can read the old version of th doc from this.state.doc because
     // setState is not immediate and so this.state may not yet reflect the
     // latest version of the doc.
-    const doc = window.hm.change(window.hm.find(this.props.docId), changeBlock)
-    this.setState({ doc })
-    return doc
+    this.handle.change(changeBlock)
+    this.setState({ doc: this.handle.doc })
+    return this.handle.doc
   }
 
   componentDidMount() {
