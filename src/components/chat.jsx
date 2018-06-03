@@ -70,6 +70,8 @@ export default class Chat extends React.PureComponent {
   }
 
   keyDown = e => {
+    e.stopPropagation()
+    
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       this.props.onChange(doc => {
@@ -99,6 +101,8 @@ const css = {
     flexDirection: 'column',
     backgroundColor: 'white',
     flexGrow: 1,
+    minWidth: 288,
+    minHeight: 480,
   },
   messages: {
     overflow: 'auto',
