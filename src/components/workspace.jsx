@@ -28,7 +28,7 @@ export default class Workspace extends React.PureComponent {
       i.docId = selfId
     })
 
-    const boardId = Content.initializeContentDoc('board', { selfId })
+    const boardId = `pushpin://board/${Content.initializeContentDoc('board', { selfId })}`
 
     onChange((ws) => {
       ws.selfId = selfId
@@ -54,7 +54,7 @@ export default class Workspace extends React.PureComponent {
     return (
       <div>
         <Content type="title-bar" docId={this.props.docId} />
-        <Content type="board" docId={this.props.doc.boardId} />
+        <Content type="board" url={this.props.doc.boardId} />
       </div>
     )
   }

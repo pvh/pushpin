@@ -11,6 +11,7 @@ export default class Content extends React.PureComponent {
   static propTypes = {
     type: PropTypes.string.isRequired,
     docId: PropTypes.string.isRequired,
+    url: PropTypes.string,
   }
 
   constructor(props) {
@@ -80,12 +81,29 @@ export default class Content extends React.PureComponent {
 
   render() {
     log('render')
+
+    let type, docId
+    if (this.props.url) {
+      const url = new URL(this.props.url)
+      // the protocol includes a colon after it. neat.
+      if (url.protocol.slice(0, -1) !== 'pushpin') {
+        throw new Error("Invalid url protocol (expected pushpin:// url)", url)
+      }
+      // not checking if both are set because i'll retire type/docId at end of patch 
+
+      type = url.host
+      docId = url.pathname
+    } else {
+      type = this.props.type
+      docId = this.props.docId
+    }
+
     const contentType = ContentTypes
       .list({ withUnlisted: true })
-      .find((ct) => ct.type === this.props.type)
+      .find((ct) => ct.type === type)
 
     if (!contentType) {
-      throw new Error(`Could not find component of type ${this.props.type}`)
+      throw new Error(`Could not find component of type ${type}`)
     }
 
     if (!this.state.doc) {
@@ -96,7 +114,7 @@ export default class Content extends React.PureComponent {
 
     return (
       <contentType.component
-        docId={this.props.docId}
+        docId={docId}
         onChange={this.onChange}
         doc={this.state.doc}
         {...filteredProps}
