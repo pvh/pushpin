@@ -25,10 +25,6 @@ export const parseDocumentLink = link => {
 
   const { nonCrc, crc, scheme, type, docId } = parts(link)
 
-  if (!isValidCRCShareLink(nonCrc, crc)) {
-    throw new Error(`Failed CRC check: ${crc16(nonCrc)} should have been ${crc}`)
-  }
-
   if (scheme !== 'pushpin') {
     throw new Error(`Invalid url scheme: ${scheme} (expected pushpin)`)
   }
@@ -39,6 +35,10 @@ export const parseDocumentLink = link => {
 
   if (!type) {
     throw new Error(`Missing type in ${this.props.url}`)
+  }
+
+  if (!isValidCRCShareLink(nonCrc, crc)) {
+    throw new Error(`Failed CRC check: ${crc16(nonCrc)} should have been ${crc}`)
   }
 
   return { scheme, type, docId }

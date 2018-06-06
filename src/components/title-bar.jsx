@@ -26,10 +26,16 @@ export default class TitleBar extends React.PureComponent {
     this.openDocument = this.openDocument.bind(this)
   }
 
-  openDocument(id) {
-    this.props.onChange(d => {
-      d.currentDocUrl = id
-    })
+  openDocument(url) {
+    try {
+      parseDocumentLink(url)
+
+      this.props.onChange(d => {
+        d.currentDocUrl = url
+      })
+    } catch (e) {
+      alert(e, "Link's no good.")
+    }
   }
 
   render() {
