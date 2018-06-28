@@ -2,11 +2,12 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import Debug from 'debug'
 
-import ContentTypes from '../../content-types'
+import ContentTypes from '../content-types'
+import Content from './content'
 
-const log = Debug('pushpin:github-issue')
+const log = Debug('pushpin:github-project')
 
-export default class GithubIssueInList extends React.PureComponent {
+export default class GithubProject extends React.PureComponent {
   static propTypes = {
     docId: PropTypes.string.isRequired
   }
@@ -14,8 +15,6 @@ export default class GithubIssueInList extends React.PureComponent {
   static initializeDocument = (urlDoc, { stuff = '' }) => {
     // don't need this yet
   }
-
-  state = {}
 
   static minWidth = 9
   static minHeight = 9
@@ -44,27 +43,42 @@ export default class GithubIssueInList extends React.PureComponent {
   }
 
   render = () => {
-    const { contents } = this.state
-    if (!contents) {
-      return (
-        <div style={css.issueCard}>
-          Loading
+    const { issues = [] } = this.state
+
+    const noneFound = (
+      <div className="ListMenu__item">
+        <div className="ContactListItem">
+          <i className="Badge ListMenu__thumbnail fa fa-exclamation-point" style={{ backgroundColor: 'var(--colorPaleGrey)' }} />
+          <div className="Label">
+            <p className="Type--primary">No issues here</p>
+            <p className="Type--secondary">Guess you're all done.</p>
+          </div>
         </div>
-      )
-    }
+      </div>
+    )
+    const issueContents = issues.map(url => (
+      <div key={url} className="ListMenu__item">
+        <Content
+          context="list"
+          url={url}
+        />
+      </div>
+    ))
+
     return (
-      <div style={css.issueCard}>
-        <h1>{contents.title}</h1>
-        <small>#{contents.number} {contents.state}ed at {contents.created_at}</small>
+      <div>
+        <div className="ListMenu__section">
+          { issues.length !== 0 ? issueContents : noneFound}
+        </div>
       </div>
     )
   }
 }
 
 ContentTypes.register({
-  component: GithubIssueInList,
-  type: 'github-issue',
-  name: 'GitHub Issue',
+  component: GithubProject,
+  type: 'github-project',
+  name: 'GitHub Project',
   icon: 'github',
   resizable: true
 })

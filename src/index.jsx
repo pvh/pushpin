@@ -24,6 +24,7 @@ import './components/contact/contact-in-thread'
 // other single-context components
 import './components/github-issue/github-issue-in-list'
 import './components/github-issue/github-issue'
+import './components/github-project'
 import './components/text-content'
 import './components/image-content'
 import './components/thread-content'
