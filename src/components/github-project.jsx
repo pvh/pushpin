@@ -42,8 +42,12 @@ export default class GithubProject extends React.PureComponent {
     this.setState({ ...doc })
   }
 
+  setCurrentIssue = (url) => {
+    this.setState({ currentIssue: url })
+  }
+
   render = () => {
-    const { issues = [] } = this.state
+    const { issues = [], currentIssue } = this.state
 
     const noneFound = (
       <div className="ListMenu__item">
@@ -56,8 +60,14 @@ export default class GithubProject extends React.PureComponent {
         </div>
       </div>
     )
+
+    const noCurrent = (
+      <div>
+        Select an issue on the left.
+      </div>
+    )
     const issueContents = issues.map(url => (
-      <div key={url} className="ListMenu__item">
+      <div key={url} className="ListMenu__item" onClick={(e) => this.setCurrentIssue(url)}>
         <Content
           context="list"
           url={url}
@@ -66,9 +76,12 @@ export default class GithubProject extends React.PureComponent {
     ))
 
     return (
-      <div>
+      <div className="GithubProject" style={css.githubProject}>
         <div className="ListMenu__section">
           { issues.length !== 0 ? issueContents : noneFound}
+        </div>
+        <div className="CurrentIssue" style={css.currentIssue}>
+          { currentIssue ? <Content url={currentIssue} /> : noCurrent }
         </div>
       </div>
     )
@@ -95,4 +108,14 @@ const css = {
     flex: '1 1 auto',
     border: '1px solid var(--colorPaleGrey)'
   },
+  githubProject: {
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  issueList: {
+    width: '200px'
+  },
+  currentIssue: {
+    flexGrow: 1
+  }
 }
