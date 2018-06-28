@@ -52,7 +52,8 @@ export default class GithubIssue extends React.PureComponent {
     }
     return (
       <div style={css.issueCard}>
-        {JSON.stringify(contents)}
+        <h1>{contents.title}</h1>
+        <small>#{contents.number} {contents.state}ed at {contents.created_at}</small>
       </div>
     )
   }
