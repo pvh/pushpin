@@ -71,6 +71,7 @@
     "js-crc": "^0.2.0",
     "line-awesome": "git+https://github.com/choxi/line-awesome.git",
     "mkdirp": "0.5.1",
+    "npm": "^6.1.0",
     "react": "16.4.0",
     "react-color": "^2.14.1",
     "react-contextmenu": "2.9.2",

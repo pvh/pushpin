@@ -22,7 +22,7 @@ import './components/contact/contact-in-list'
 import './components/contact/contact-in-thread'
 
 // other single-context components
-import './components/github-issue-content'
+import './components/github-issue/github-issue-in-list'
 import './components/text-content'
 import './components/image-content'
 import './components/thread-content'

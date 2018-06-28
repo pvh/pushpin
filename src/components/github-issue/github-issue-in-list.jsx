@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import Debug from 'debug'
 
-import ContentTypes from '../content-types'
+import ContentTypes from '../../content-types'
 
 const log = Debug('pushpin:github-issue')
 
