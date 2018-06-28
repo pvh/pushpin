@@ -6,7 +6,7 @@ import ContentTypes from '../../content-types'
 
 const log = Debug('pushpin:github-issue')
 
-export default class GithubIssue extends React.PureComponent {
+export default class GithubIssueInList extends React.PureComponent {
   static propTypes = {
     docId: PropTypes.string.isRequired
   }
@@ -60,7 +60,7 @@ export default class GithubIssue extends React.PureComponent {
 }
 
 ContentTypes.register({
-  component: GithubIssue,
+  component: GithubIssueInList,
   type: 'github-issue',
   name: 'GitHub Issue',
   icon: 'github',
