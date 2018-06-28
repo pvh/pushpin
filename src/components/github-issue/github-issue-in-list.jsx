@@ -63,6 +63,7 @@ export default class GithubIssueInList extends React.PureComponent {
 
 ContentTypes.register({
   component: GithubIssueInList,
+  context: 'list',
   type: 'github-issue',
   name: 'GitHub Issue',
   icon: 'github',
